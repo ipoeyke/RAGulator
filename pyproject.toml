@@ -4,13 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ragulator"
-version = "0.1.0"
+version = "0.1.1"
 description = "Lightweight Out-of-Context Detectors for Grounded Text Generation"
 authors = [
     { name = "Ian Poey", email = "ianpoey@ocbc.com" },
-    { name = "Jiajun Liu", email = "jiajunliu@ocbc.com" },
+    { name = "Jiajun Liu", email = "" },
     { name = "Qishuai Zhong", email = "qishuaizhong@ocbc.com" },
-    { name = "Adrien Chenailler", email = "adrienchenailler@ocbc.com" },
+    { name = "Adrien Chenailler", email = "" },
 ]
 readme = "README.md"
 requires-python = ">=3.9,<3.11"
