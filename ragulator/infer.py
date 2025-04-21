@@ -105,6 +105,17 @@ class RAGulator:
         
         return preds
 
+    def sentencize(self, text: str) -> list[str]:
+        """Sentencize a text using SpaCy.
+        
+        Args:
+            text (str): text to be sentencized
+        
+        Returns:
+            list[str]: list of sentences
+        """
+        return [sent.text.strip() for sent in self.spacy(text).sents]
+
     def __infer(self, batch: dict) -> np.array:
         """Perform BERT forward pass for a single batch of tokenized 
         sentence-context-pair sub-sequences. Maximum sequence length is 512 tokens.
@@ -182,7 +193,7 @@ class RAGulator:
 
         # convert to list of sentences if not already
         if isinstance(texts, str):
-            texts = self.__sentencize(texts)
+            texts = self.sentencize(texts)
 
         # windowing
         for i, s in enumerate(texts):
@@ -201,10 +212,6 @@ class RAGulator:
             windows.append(" ".join(window))
             
         return windows
-
-    def __sentencize(self, text: str) -> list[str]:
-        """Sentencize a text using SpaCy."""
-        return [sent.text.strip() for sent in self.spacy(text).sents]
 
     def __count_tokens(self, text: str) -> int:
         """Count tokens in a text using SpaCy."""
