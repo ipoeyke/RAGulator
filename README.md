@@ -71,14 +71,7 @@ model.infer_batch(
 ## Usage - OOC detection as a service (NEW!)
 We demonstrate a basic Ray Serve application to show how RAGulator might be deployed as a service. To run the Ray Serve app, PyTorch 2.x is recommended as older versions may not be compatible.
 
-After installation, run the following commands:
-
-```bash
-source ragulator-env/bin/activate
-python ragulator/app.py
-```
-
-The app will be available at `http://127.0.0.1:8000`, and the Ray dashboard will be available at `http://127.0.0.1:8265`.
+After installation, run `./run_app.sh`. The app will be available at `http://127.0.0.1:8000`, and the Ray dashboard will be available at `http://127.0.0.1:8265`.
 
 ### API
 
