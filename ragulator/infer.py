@@ -112,7 +112,7 @@ class RAGulator:
             text (str): text to be sentencized
         
         Returns:
-            list[str]: list of sentences
+            list of sentences
         """
         return [sent.text.strip() for sent in self.spacy(text).sents]
 

@@ -37,7 +37,7 @@ We compare our models to LLM-as-a-judge (Llama-3.1-70b-Instruct) as a baseline. 
 The deberta-v3-large variant is our best-performing model, showing a 19% increase in AUROC and a 17% increase in F1 score despite being significantly smaller than Llama-3.1.
 
 ## Installation
-The RAGulator model was trained using PyTorch 1.13.1. Although the model will run on PyTorch 2.x, we strongly recommend keeping to the same version used in training.
+The RAGulator model was trained using PyTorch 1.13.1. Although the model will run on PyTorch 2.x, we strongly recommend keeping to the same version used in training for result reproduction.
 Run the following commands to install the package in a virtualenv:
 ```bash
 python -m venv "ragulator-env"
@@ -66,6 +66,74 @@ model.infer_batch(
     contexts,
     return_probas=True # True for OOC probabilities, False for binary labels
 )
+```
+
+## Usage - OOC detection as a service (NEW!)
+We demonstrate a basic Ray Serve application to show how RAGulator might be deployed as a service. To run the Ray Serve app, PyTorch 2.x is recommended as older versions may not be compatible.
+
+After installation, run the following commands:
+
+```bash
+source ragulator-env/bin/activate
+python ragulator/app.py
+```
+
+The app will be available at `http://127.0.0.1:8000`, and the Ray dashboard will be available at `http://127.0.0.1:8265`.
+
+### API
+
+The API provides three endpoints:
+
+1. `GET /get_config` - View the default configuration of the model.
+2. `POST /predict` - Predict for a single LLM response-context pair.
+3. `POST /batch_predict` - Predict for a batch of LLM response-context pairs.
+
+### Request Format
+
+The request format for `POST /predict` is as follows:
+
+```json
+{
+    "llm_response": "This is the only response.",
+    "context": "This is the only context.",
+    "context_window_length": 490,
+    "minimum_sentence_length": 20,
+    "threshold": 0.5,
+    "return_probas": true
+}
+```
+
+The request format for `POST /batch_predict` is as follows:
+
+```json
+{
+    "llm_responses": ["This is the first response.", "This is the second response."],
+    "contexts": ["This is the first context.", "This is the second context."],
+    "context_window_length": 490,
+    "minimum_sentence_length": 20,
+    "threshold": 0.5,
+    "return_probas": true
+}
+```
+
+### Response Format
+
+The response format for `POST /predict` is as follows:
+
+```json
+{
+    "prediction": 1,
+    "sentences_evaluated": ["This is the only sentence."]
+}
+```
+
+The response format for `POST /batch_predict` is as follows:
+
+```json
+{
+    "predictions": [1, 1],
+    "sentences_evaluated": ["This is the first sentence.", "This is the second sentence."]
+}
 ```
 
 ## Citation
