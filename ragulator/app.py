@@ -1,3 +1,4 @@
+import numpy as np
 import ray
 from ray import serve
 from fastapi import FastAPI
@@ -17,16 +18,33 @@ class RAGulatorDeployment:
 
     @app.get("/get_config")
     async def get_config(self) -> ConfigResponse:
-        """View the default configuration of the model."""
+        """Endpoint to view default config.
+        
+        Args:
+            None
+            
+        Returns:
+            ConfigResponse: deployed model configuration
+        """
         return ConfigResponse(config=self.config)
 
     @app.post("/predict")
     async def predict(self, request: PipelineRequest) -> PipelineResponse:
-        """Predict for a single LLM response-context pair."""
+        """Endpoint to predict OOC on a single LLM response.
+        
+        Args:
+            payload (PipelineRequest): payload
+            
+        Returns:
+            PipelineResponse: response
+        """
         sentences = self.model.sentencize(request.llm_response)
         sentences = filter_sentences(sentences, request.minimum_sentence_length)
         contexts = [request.context] * len(sentences)
+
+        response_pred, preds = None, []
         if len(sentences) > 0:
+            # get predictions at sentence-level
             preds = self.model.infer_batch(
                 sentences=sentences,
                 contexts=contexts,
@@ -34,30 +52,44 @@ class RAGulatorDeployment:
                 ooc_threshold=request.threshold,
                 return_probas=request.return_probas
             )
-        else:
-            preds = None
+            # get predictions at response-level
+            if request.return_probas:
+                response_pred = 1 if all(p >= request.threshold for p in preds) else 0
+            else:
+                response_pred = 1 if all(preds) else 0
         
         return PipelineResponse(
-            prediction=preds[0] if preds is not None else None,
+            prediction=response_pred,
+            sentences_predictions=preds,
             sentences_evaluated=sentences
         )
 
     @app.post("/batch_predict")
     async def batch_predict(self, request: PipelineRequestBatch) -> PipelineResponseBatch:
-        """Batch predict for multiple LLM response-context pairs."""
-        sentences, contexts = [], []
+        """Endpoint to predict OOC on multiple LLM responses.
+        
+        Args:
+            payload (PipelineRequestBatch): payload
+            
+        Returns:
+            PipelineResponseBatch: response
+        """
+        nested_sentences, nested_contexts, pair_ids = [], [], []
         valid_pair_counter = 0
         for r, c in zip(request.llm_responses, request.contexts):
             s = self.model.sentencize(r)
             s = filter_sentences(s, request.minimum_sentence_length)
             if len(s) > 0:
+                nested_sentences.append(s)
+                nested_contexts.append([c] * len(s))
+                pair_ids.extend([valid_pair_counter] * len(s))
                 valid_pair_counter += 1
-                sentences.append(s)
-                contexts.append(c * len(s))
         
+        response_preds, nested_preds = [], []
         if valid_pair_counter > 0:
-            sentences = [s for s in sentences if len(s) > 0]
-            contexts = [c for c in contexts if len(c) > 0]
+            # get predicdtions at sentence-level
+            sentences = [s for ele in nested_sentences for s in ele]
+            contexts = [c for ele in nested_contexts for c in ele]
             preds = self.model.infer_batch(
                 sentences=sentences,
                 contexts=contexts,
@@ -65,12 +97,24 @@ class RAGulatorDeployment:
                 ooc_threshold=request.threshold,
                 return_probas=request.return_probas
             )
-        else:
-            preds = None
+            # get predictions at response-level
+            preds_arr = np.array(preds)
+            pair_ids = np.array(pair_ids)
+            for i in range(valid_pair_counter):
+                indices = np.where(pair_ids == i)
+                values = preds_arr[indices]
+                nested_preds.append(values.tolist())
+                if request.return_probas:
+                    # take min. probability as the response overall probability
+                    response_preds.append(1 if np.min(values).item() >= request.threshold else 0)
+                else:
+                    # if ALL OOC then pair is OOC else IC
+                    response_preds.append(int(np.all(values)))
 
         return PipelineResponseBatch(
-            predictions=preds if preds is not None else None,
-            sentences_evaluated=sentences
+            predictions=response_preds,
+            sentences_predictions=nested_preds,
+            sentences_evaluated=nested_sentences
         )
 
 # entry point to start Ray Serve

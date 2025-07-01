@@ -1,5 +1,6 @@
-from pydantic import BaseModel, root_validator
-from typing import List, Optional
+from pydantic import BaseModel, model_validator
+from typing import List, Optional, Union
+from typing_extensions import Self
 from ragulator.utils import load_config
 
 config = load_config('ragulator/config.yaml')['infer']
@@ -23,22 +24,24 @@ class PipelineRequestBatch(BaseModel):
     threshold: float = config['threshold']
     return_probas: bool = config['return_probas']
 
-    @root_validator
-    def check_lengths_match(cls, values):
-        llm_responses = values.get('llm_responses')
-        contexts = values.get('contexts')
-        if not llm_responses or not contexts:
+    @model_validator(mode='after')
+    def check_texts(self) -> Self:
+        n_responses = len(self.llm_responses)
+        n_contexts = len(self.contexts)
+        if n_responses == 0 or n_contexts == 0:
             raise ValueError("Both llm_responses and contexts must not be empty.")
-        if len(llm_responses) != len(contexts):
+        if n_responses != n_contexts:
             raise ValueError(
-                f"Number of llm_responses ({len(llm_responses)}) and contexts ({len(contexts)}) must be the same."
+                f"Number of llm_responses ({n_responses}) and contexts ({n_contexts}) must be equal."
             )
-        return values
+        return self
 
 class PipelineResponse(BaseModel):
-    prediction: Optional[float]
+    prediction: Optional[Union[int, float]]
+    sentences_predictions: List[Union[int, float]]
     sentences_evaluated: List[str]
 
 class PipelineResponseBatch(BaseModel):
-    predictions: Optional[List[float]]
+    predictions: Optional[List[Union[int, float]]]
+    sentences_predictions: List[List[Union[int, float]]]
     sentences_evaluated: List[List[str]]

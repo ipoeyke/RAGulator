@@ -7,6 +7,6 @@ ray[serve]==2.11.0
 fastapi>=0.95.2
 starlette>=0.27.0
 protobuf>=3.20.3
-pydantic
+pydantic>=2.5.0
 uvicorn
 pyyaml
