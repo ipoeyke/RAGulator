@@ -5,8 +5,8 @@ This repository contains code to perform out-of-context detection with RAGulator
 ## Key Points
 * RAGulator predicts whether a sentence is out-of-context (OOC) from retrieved text documents in a RAG setting.
 * We preprocess a combination of summarisation and semantic textual similarity datasets (STS) to construct training data using minimal resources.
-* We demonstrate 2 types of trained models: tree-based meta-models trained on features engineered on preprocessed text, and BERT-based classifiers fine-tuned directly on original text.
-* We find that fine-tuned DeBERTa is not only the best-performing model under this pipeline, but it is also fast and does not require additional text preprocessing or feature engineering.
+* We demonstrate two types of trained models: tree-based meta-models trained on features engineered on preprocessed text, and BERT-based classifiers fine-tuned directly on original text.
+* The fine-tuned DeBERTa model stands out for its superior performance, speed, and simplicity, as it requires no additional preprocessing or feature engineering; it can be deployed as a service in real-time RAG workflows via a serving framework.
 
 ## Model Details
 
@@ -27,14 +27,17 @@ To enable training of BERT-based classifiers, each training example was split in
 ### Model Training
 RAGulator is fine-tuned from `microsoft/deberta-v3-large` ([He et al., 2023](https://arxiv.org/pdf/2111.09543.pdf)).
 
+## Model Inference
+To maximise model throughput, we identify each example with unique `pair_ids` during the chunking of examples into 512-token sub-sequences. The `pair_ids` are then used to aggregate the predictions at the example level. This is a simple yet effective way to speed up inference across multiple examples.
+
 ### Model Performance
 <p align="center">
     <img src="./model-performance.png" width="700">
 </p>
 
-We compare our models to LLM-as-a-judge (Llama-3.1-70b-Instruct) as a baseline. We evaluate on both a held-out data split of our simulated RAG dataset, as well as an out-of-distribution collection of private enterprise data, which consists of RAG responses from a real use case.
+We compare our models against direct zero-shot prompting of Llama-3.1-70b-Instruct as a baseline, other black-box LLM-as-a-judge methods, and open-source grey-box detectors. We evaluate on both an in-distribution holdout split of our simulated RAG dataset, and an out-of-distribution collection of private enterprise data, which consists of human-annotated RAG responses from two industrial applications.
 
-The deberta-v3-large variant is our best-performing model, showing a 19% increase in AUROC and a 17% increase in F1 score despite being significantly smaller than Llama-3.1.
+RAGulator-deberta-v3-large is our best-performing model variatnt, showing a 19% increase in AUROC and a 17% increase in F1 score from the baseline despite being significantly smaller than Llama-3.1. It also exhibits overall competitive performance against other black-box and grey-box detectors.
 
 ## Installation
 The RAGulator model was trained using PyTorch 1.13.1. Although the model will run on PyTorch 2.x, we strongly recommend keeping to the same version used in training for result reproduction.
