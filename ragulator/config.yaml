@@ -1,0 +1,7 @@
+infer:
+  device: cpu
+  batch_size: 32
+  context_window_length: 490
+  minimum_sentence_length: 20
+  threshold: 0.5
+  return_probas: True
