@@ -1,6 +1,6 @@
 # RAGulator
 
-This repository contains code to perform out-of-context detection with RAGulator, as described in [**RAGulator: Lightweight Out-of-Context Detectors for Grounded Text Generation**](https://arxiv.org/abs/2411.03920).
+This repository contains code to perform out-of-context detection with RAGulator, as described in [**RAGulator: Lightweight Out-of-Context Detectors for Grounded Text Generation**](https://aclanthology.org/2025.emnlp-industry.73/), which is published in EMNLP 2025 (Industry Track).
 
 ## Key Points
 * RAGulator predicts whether a sentence is out-of-context (OOC) from retrieved text documents in a RAG setting.
@@ -134,13 +134,23 @@ The response format for `POST /batch_predict` is as follows:
 
 ## Citation
 ```
-@misc{poey2024ragulatorlightweightoutofcontextdetectors,
-      title={RAGulator: Lightweight Out-of-Context Detectors for Grounded Text Generation}, 
-      author={Ian Poey and Jiajun Liu and Qishuai Zhong and Adrien Chenailler},
-      year={2024},
-      eprint={2411.03920},
-      archivePrefix={arXiv},
-      primaryClass={cs.CL},
-      url={https://arxiv.org/abs/2411.03920}, 
+@inproceedings{poey-etal-2025-ragulator,
+    title = "{RAG}ulator: Lightweight Out-of-Context Detectors for Grounded Text Generation",
+    author = "Poey, Ian  and
+      Liu, Jiajun  and
+      Zhong, Qishuai",
+    editor = "Potdar, Saloni  and
+      Rojas-Barahona, Lina  and
+      Montella, Sebastien",
+    booktitle = "Proceedings of the 2025 Conference on Empirical Methods in Natural Language Processing: Industry Track",
+    month = nov,
+    year = "2025",
+    address = "Suzhou (China)",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/2025.emnlp-industry.73/",
+    doi = "10.18653/v1/2025.emnlp-industry.73",
+    pages = "1057--1071",
+    ISBN = "979-8-89176-333-3",
+    abstract = "Real-time identification of out-of-context outputs from large language models (LLMs) is crucial for enterprises to safely adopt retrieval augmented generation (RAG) systems. In this work, we develop lightweight models capable of detecting when LLM-generated text deviates from retrieved source documents semantically. We compare their performance against open-source alternatives on data from credit policy and sustainability reports used in the banking industry. The fine-tuned DeBERTa model stands out for its superior performance, speed, and simplicity, as it requires no additional preprocessing or feature engineering. While recent research often prioritises state-of-the-art accuracy through fine-tuned generative LLMs and complex training pipelines, we demonstrate how detection models are deployed efficiently with high speed and minimal resource usage."
 }
 ```
